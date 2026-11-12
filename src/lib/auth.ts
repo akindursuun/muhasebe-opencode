@@ -27,5 +27,5 @@ export async function destroySession() {
   (await cookies()).set(COOKIE_NAME, "", { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 0 });
 }
 export function canManageFinance(role: string) {
-  return ["SUPER_ADMIN", "GENERAL_MANAGER", "ACCOUNTING"].includes(role);
+  return ["SUPER_ADMIN", "GENERAL_MANAGER", "ACCOUNTING", "BRANCH_MANAGER"].includes(role);
 }
