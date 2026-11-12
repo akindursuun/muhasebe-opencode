@@ -59,6 +59,7 @@ model Branch {
   attendance Attendance[]
   categories Category[]
   counterparties Counterparty[]
+  payrollPeriods PayrollPeriod[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -164,6 +165,7 @@ model Employee {
   monthlyGross Decimal? @db.Decimal(14, 2)
   monthlyNet Decimal? @db.Decimal(14, 2)
   attendance Attendance[]
+  payrollRecords PayrollRecord[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@unique([branchId, employeeNo])
@@ -219,4 +221,39 @@ model AuditLog {
   createdAt DateTime @default(now())
   @@index([userId, createdAt])
   @@index([entity, entityId])
+}
+
+model PayrollPeriod {
+  id String @id @default(cuid())
+  branchId String
+  branch Branch @relation(fields: [branchId], references: [id])
+  year Int
+  month Int
+  status String @default("DRAFT")
+  totalGross Decimal @default(0) @db.Decimal(14, 2)
+  totalNet Decimal @default(0) @db.Decimal(14, 2)
+  totalEmployerCost Decimal @default(0) @db.Decimal(14, 2)
+  records PayrollRecord[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([branchId, year, month])
+}
+
+model PayrollRecord {
+  id String @id @default(cuid())
+  periodId String
+  period PayrollPeriod @relation(fields: [periodId], references: [id])
+  employeeId String
+  employee Employee @relation(fields: [employeeId], references: [id])
+  baseGross Decimal @db.Decimal(14, 2)
+  overtimePay Decimal @default(0) @db.Decimal(14, 2)
+  bonus Decimal @default(0) @db.Decimal(14, 2)
+  deductions Decimal @default(0) @db.Decimal(14, 2)
+  netPay Decimal @db.Decimal(14, 2)
+  employerCost Decimal @db.Decimal(14, 2)
+  paidAt DateTime?
+  notes String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([periodId, employeeId])
 }
