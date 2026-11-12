@@ -5,7 +5,7 @@ import { canManageFinance, getSessionUser } from "@/lib/auth";
 
 const createSchema = z.object({
   branchId: z.string().min(1), accountId: z.string().optional().nullable(), categoryId: z.string().optional().nullable(),
-  type: z.enum(["INCOME","EXPENSE","TRANSFER"]), transactionDate: z.string().datetime(), amount: z.number().positive().max(999999999),
+  type: z.enum(["INCOME","EXPENSE"]), transactionDate: z.string().datetime(), amount: z.number().positive().max(999999999),
   description: z.string().min(2).max(500), documentNo: z.string().max(100).optional(), notes: z.string().max(2000).optional()
 });
 export async function GET(request: NextRequest) {
@@ -34,6 +34,10 @@ export async function POST(request: NextRequest) {
   if (input.data.accountId) {
     const account = await prisma.financialAccount.findFirst({ where: { id: input.data.accountId, branchId: input.data.branchId } });
     if (!account) return NextResponse.json({ error: "Finans hesabı bu şubeye ait değil." }, { status: 400 });
+  }
+  if (input.data.categoryId) {
+    const category = await prisma.category.findFirst({ where: { id: input.data.categoryId, type: input.data.type, OR: [{ branchId: input.data.branchId }, { branchId: null }] } });
+    if (!category) return NextResponse.json({ error: "Kategori bu şubeye veya işlem türüne ait değil." }, { status: 400 });
   }
   const transaction = await prisma.financeTransaction.create({ data: {
     branchId: input.data.branchId, accountId: input.data.accountId || null, categoryId: input.data.categoryId || null,
