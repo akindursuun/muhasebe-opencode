@@ -4,13 +4,13 @@ const prisma = new PrismaClient();
 async function main() {
   const branchOne = await prisma.branch.upsert({ where: { code: "BR-001" }, update: {}, create: { code: "BR-001", name: "1. Şube" } });
   const branchTwo = await prisma.branch.upsert({ where: { code: "BR-002" }, update: {}, create: { code: "BR-002", name: "2. Şube" } });
-  await prisma.category.createMany({ data: [
-    { name: "Oda Geliri", type: TransactionType.INCOME }, { name: "Yiyecek & İçecek", type: TransactionType.INCOME },
-    { name: "Diğer Gelir", type: TransactionType.INCOME }, { name: "Personel Gideri", type: TransactionType.EXPENSE },
-    { name: "Elektrik / Su / Doğalgaz", type: TransactionType.EXPENSE }, { name: "Satın Alma", type: TransactionType.EXPENSE },
-    { name: "Bakım / Onarım", type: TransactionType.EXPENSE }, { name: "Diğer Gider", type: TransactionType.EXPENSE }
-  ], skipDuplicates: true });
   for (const branch of [branchOne, branchTwo]) {
+    await prisma.category.createMany({ data: [
+      { branchId: branch.id, name: "Oda Geliri", type: TransactionType.INCOME }, { branchId: branch.id, name: "Yiyecek & İçecek", type: TransactionType.INCOME },
+      { branchId: branch.id, name: "Diğer Gelir", type: TransactionType.INCOME }, { branchId: branch.id, name: "Personel Gideri", type: TransactionType.EXPENSE },
+      { branchId: branch.id, name: "Elektrik / Su / Doğalgaz", type: TransactionType.EXPENSE }, { branchId: branch.id, name: "Satın Alma", type: TransactionType.EXPENSE },
+      { branchId: branch.id, name: "Bakım / Onarım", type: TransactionType.EXPENSE }, { branchId: branch.id, name: "Diğer Gider", type: TransactionType.EXPENSE }
+    ], skipDuplicates: true });
     await prisma.financialAccount.upsert({ where: { branchId_name: { branchId: branch.id, name: "Ana Kasa" } }, update: {}, create: { branchId: branch.id, name: "Ana Kasa", type: AccountType.CASH } });
     await prisma.financialAccount.upsert({ where: { branchId_name: { branchId: branch.id, name: "Banka Hesabı" } }, update: {}, create: { branchId: branch.id, name: "Banka Hesabı", type: AccountType.BANK } });
   }
