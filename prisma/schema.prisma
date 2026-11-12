@@ -1,0 +1,190 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+enum UserRole { SUPER_ADMIN GENERAL_MANAGER ACCOUNTING HR BRANCH_MANAGER VIEWER }
+enum TransactionType { INCOME EXPENSE TRANSFER }
+enum AccountType { BANK CASH POS OTHER }
+enum AttendanceStatus { WORKED OFF ANNUAL_LEAVE SICK_LEAVE UNPAID_LEAVE ABSENT HALF_DAY }
+enum EmployeeStatus { ACTIVE INACTIVE LEFT }
+enum AssetStatus { ACTIVE IN_REPAIR DISPOSED }
+
+model Branch {
+  id String @id @default(cuid())
+  code String @unique
+  name String
+  address String?
+  phone String?
+  isActive Boolean @default(true)
+  users User[]
+  transactions FinanceTransaction[]
+  accounts FinancialAccount[]
+  employees Employee[]
+  assets FixedAsset[]
+  attendance Attendance[]
+  categories Category[]
+  counterparties Counterparty[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model User {
+  id String @id @default(cuid())
+  name String
+  email String @unique
+  passwordHash String
+  role UserRole @default(VIEWER)
+  isActive Boolean @default(true)
+  branchId String?
+  branch Branch? @relation(fields: [branchId], references: [id])
+  transactions FinanceTransaction[] @relation("CreatedTransactions")
+  auditLogs AuditLog[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model FinancialAccount {
+  id String @id @default(cuid())
+  branchId String
+  branch Branch @relation(fields: [branchId], references: [id])
+  name String
+  bankName String?
+  iban String?
+  type AccountType
+  openingBalance Decimal @default(0) @db.Decimal(14, 2)
+  isActive Boolean @default(true)
+  transactions FinanceTransaction[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([branchId, name])
+  @@index([branchId, type])
+}
+model Category {
+  id String @id @default(cuid())
+  branchId String?
+  branch Branch? @relation(fields: [branchId], references: [id])
+  name String
+  type TransactionType
+  isActive Boolean @default(true)
+  transactions FinanceTransaction[]
+  createdAt DateTime @default(now())
+  @@unique([branchId, name, type])
+}
+model Counterparty {
+  id String @id @default(cuid())
+  branchId String?
+  branch Branch? @relation(fields: [branchId], references: [id])
+  name String
+  taxNumber String?
+  phone String?
+  email String?
+  notes String?
+  transactions FinanceTransaction[]
+  createdAt DateTime @default(now())
+  @@index([name])
+}
+model FinanceTransaction {
+  id String @id @default(cuid())
+  branchId String
+  branch Branch @relation(fields: [branchId], references: [id])
+  accountId String?
+  account FinancialAccount? @relation(fields: [accountId], references: [id])
+  categoryId String?
+  category Category? @relation(fields: [categoryId], references: [id])
+  counterpartyId String?
+  counterparty Counterparty? @relation(fields: [counterpartyId], references: [id])
+  createdById String
+  createdBy User @relation("CreatedTransactions", fields: [createdById], references: [id])
+  type TransactionType
+  transactionDate DateTime
+  amount Decimal @db.Decimal(14, 2)
+  currency String @default("TRY")
+  description String
+  documentNo String?
+  source String @default("MANUAL")
+  importBatchId String?
+  importHash String?
+  isReconciled Boolean @default(false)
+  notes String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([branchId, importHash])
+  @@index([branchId, transactionDate])
+  @@index([type, transactionDate])
+  @@index([accountId, transactionDate])
+}
+model Employee {
+  id String @id @default(cuid())
+  branchId String
+  branch Branch @relation(fields: [branchId], references: [id])
+  employeeNo String?
+  firstName String
+  lastName String
+  nationalId String?
+  email String?
+  phone String?
+  department String?
+  position String?
+  startDate DateTime
+  endDate DateTime?
+  status EmployeeStatus @default(ACTIVE)
+  monthlyGross Decimal? @db.Decimal(14, 2)
+  monthlyNet Decimal? @db.Decimal(14, 2)
+  attendance Attendance[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([branchId, employeeNo])
+  @@index([branchId, status])
+}
+model Attendance {
+  id String @id @default(cuid())
+  branchId String
+  branch Branch @relation(fields: [branchId], references: [id])
+  employeeId String
+  employee Employee @relation(fields: [employeeId], references: [id])
+  workDate DateTime
+  status AttendanceStatus
+  checkIn DateTime?
+  checkOut DateTime?
+  overtimeMin Int @default(0)
+  note String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([employeeId, workDate])
+  @@index([branchId, workDate])
+}
+model FixedAsset {
+  id String @id @default(cuid())
+  branchId String
+  branch Branch @relation(fields: [branchId], references: [id])
+  assetCode String
+  name String
+  category String?
+  purchaseDate DateTime?
+  purchaseCost Decimal @db.Decimal(14, 2)
+  usefulLifeMonths Int?
+  depreciationMethod String @default("STRAIGHT_LINE")
+  location String?
+  assignedTo String?
+  status AssetStatus @default(ACTIVE)
+  notes String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([branchId, assetCode])
+  @@index([branchId, status])
+}
+model AuditLog {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  action String
+  entity String
+  entityId String
+  beforeData Json?
+  afterData Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+  @@index([userId, createdAt])
+  @@index([entity, entityId])
+}
