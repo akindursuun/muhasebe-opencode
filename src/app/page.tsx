@@ -12,6 +12,8 @@ const metrics = [
 ];
 type Summary = {
  today: { income:number; expense:number; net:number };
+ week: { income:number; expense:number; net:number };
+ month: { income:number; expense:number; net:number };
  balances: { bank:number; cash:number };
  branchPerformance: Array<{id:string;code:string;name:string;income:number;expense:number;net:number}>;
  recentTransactions: Array<{id:string;date:string;type:string;amount:number;description:string;branch:string;account:string}>;
@@ -19,6 +21,7 @@ type Summary = {
 const money = (value:number) => new Intl.NumberFormat("tr-TR",{style:"currency",currency:"TRY",maximumFractionDigits:2}).format(value);
 export default function Home() {
  const [summary,setSummary] = useState<Summary | null>(null);
+ const [period,setPeriod] = useState<"today"|"week"|"month">("today");
  const [loadError,setLoadError] = useState("");
  useEffect(() => {
   fetch("/api/dashboard/summary").then(async response => {
@@ -26,9 +29,10 @@ export default function Home() {
    return response.json();
   }).then(setSummary).catch(() => setLoadError("Canlı veriler yüklenemedi. Veritabanı ve oturum ayarlarını kontrol edin."));
  }, []);
- const liveMetrics = summary ? [
-  {label:"Bugünkü Gelir",value:money(summary.today.income),change:"Kayıtlı hareketlerden",icon:ArrowDownLeft,tone:"green"},
-  {label:"Bugünkü Gider",value:money(summary.today.expense),change:"Kayıtlı hareketlerden",icon:ArrowUpRight,tone:"red"},
+ const periodData = summary?.[period];
+ const liveMetrics = periodData ? [
+  {label:"Bugünkü Gelir",value:money(periodData.income),change:"Kayıtlı hareketlerden",icon:ArrowDownLeft,tone:"green"},
+  {label:"Bugünkü Gider",value:money(periodData.expense),change:"Kayıtlı hareketlerden",icon:ArrowUpRight,tone:"red"},
   {label:"Banka Bakiyesi",value:money(summary.balances.bank),change:"Açılış bakiyesi + hareketler",icon:Landmark,tone:"blue"},
   {label:"Kasa Bakiyesi",value:money(summary.balances.cash),change:"Açılış bakiyesi + hareketler",icon:Banknote,tone:"amber"}
  ] : metrics;
@@ -44,7 +48,7 @@ export default function Home() {
    <div className="content">
     <div className="page-heading"><div><div className="eyebrow">YÖNETİM PANELİ</div><h1>Genel Bakış</h1><p>İki şubenizin mali ve idari durumunu tek ekrandan takip edin.</p></div><div className="heading-actions"><button className="button secondary"><FileSpreadsheet size={16}/> Excel aktarımı</button><button className="button primary"><span>＋</span> Yeni işlem</button></div></div>
     <div className="notice"><Activity size={17}/><div><strong>{summary ? "Canlı veriler bağlı" : "Veri bağlantısı"}</strong><span>{summary ? "Özetler veritabanındaki kayıtlı hareketlerden hesaplanıyor." : loadError || "Finansal veriler yükleniyor; ilk kurulumda şube ve hesaplar tanımlanmalıdır."}</span></div></div>
-    <div className="section-row"><h2>Finansal özet</h2><div className="period-select">Bugün <ChevronDown size={15}/></div></div>
+    <div className="section-row"><h2>Finansal özet</h2><select className="period-select" value={period} onChange={e=>setPeriod(e.target.value as "today"|"week"|"month")}><option value="today">Bugün</option><option value="week">Bu hafta</option><option value="month">Bu ay</option></select></div>
     <div className="metric-grid">{liveMetrics.map(m=>{const Icon=m.icon;return <article className="metric-card" key={m.label}><div className="metric-top"><span>{m.label}</span><div className={"metric-icon "+m.tone}><Icon size={18}/></div></div><strong>{m.value}</strong><small>{m.change}</small></article>})}</div>
     <div className="section-row branch-title"><div><h2>Şube performansı</h2><p>Şubelerin ayrı ve konsolide görünümü</p></div><span className="live-tag"><span/> İki şube</span></div>
     <div className="branch-grid">{(summary?.branchPerformance || [{id:"one",code:"BR-001",name:"1. Şube",income:0,expense:0,net:0},{id:"two",code:"BR-002",name:"2. Şube",income:0,expense:0,net:0}]).map(branch=><article className="branch-card" key={branch.id}><div className="branch-card-head"><div className="branch-symbol"><Building2 size={19}/></div><div><strong>{branch.name}</strong><span>{branch.code} · Bu ay</span></div><ChevronDown size={16}/></div><div className="branch-stats"><div><span>Gelir</span><strong>{money(branch.income)}</strong></div><div><span>Gider</span><strong>{money(branch.expense)}</strong></div><div><span>Net sonuç</span><strong>{money(branch.net)}</strong></div></div></article>)}</div>
