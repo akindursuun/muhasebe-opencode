@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Activity, ArrowDownLeft, ArrowUpRight, Banknote, Building2, CalendarDays, ChevronDown, CircleHelp, FileSpreadsheet, LayoutDashboard, LogOut, Package, Settings2, Users, Wallet, Landmark, ClipboardList, ReceiptText, TrendingUp, Clock3, ShieldCheck } from "lucide-react";
 const nav = [
- {label:"Genel Bakış",icon:LayoutDashboard,active:true},{label:"Gelir & Gider",icon:ReceiptText},{label:"Banka Hareketleri",icon:Landmark},{label:"Kasa Yönetimi",icon:Wallet},{label:"Personel",icon:Users},{label:"Puantaj & Bordro",icon:ClipboardList},{label:"Demirbaşlar",icon:Package},{label:"Raporlar",icon:FileSpreadsheet}
+ {label:"Genel Bakış",icon:LayoutDashboard,active:true,href:"/"},{label:"Gelir & Gider",icon:ReceiptText,href:"/transactions"},{label:"Banka Hareketleri",icon:Landmark,href:"/accounts"},{label:"Kasa Yönetimi",icon:Wallet,href:"/accounts"},{label:"Personel",icon:Users},{label:"Puantaj & Bordro",icon:ClipboardList},{label:"Demirbaşlar",icon:Package},{label:"Raporlar",icon:FileSpreadsheet}
 ];
 const metrics = [
  {label:"Bugünkü Gelir",value:"₺ 0,00",change:"Henüz kayıt yok",icon:ArrowDownLeft,tone:"green"},
@@ -40,7 +40,7 @@ export default function Home() {
   <aside className="sidebar">
    <div className="brand"><div className="brand-mark"><Building2 size={21}/></div><div><strong>HotelFinance</strong><span>YÖNETİM PLATFORMU</span></div></div>
    <div className="workspace-label">ÇALIŞMA ALANI</div><button className="branch-switch"><span className="branch-dot"/> Tüm Şubeler <ChevronDown size={15}/></button>
-   <div className="nav-list">{nav.map(item=>{const Icon=item.icon;return <a key={item.label} className={item.active?"nav-item active":"nav-item"} href="#"><Icon size={18}/><span>{item.label}</span></a>})}</div>
+   <div className="nav-list">{nav.map(item=>{const Icon=item.icon;return <a key={item.label} className={item.active?"nav-item active":"nav-item"} href={item.href || "#"}><Icon size={18}/><span>{item.label}</span></a>})}</div>
    <div className="sidebar-bottom"><a className="nav-item" href="#"><Settings2 size={18}/><span>Ayarlar</span></a><a className="nav-item" href="#"><CircleHelp size={18}/><span>Yardım Merkezi</span></a><div className="user-card"><div className="avatar">SY</div><div><strong>Sistem Yöneticisi</strong><span>Kurulum bekleniyor</span></div><LogOut size={16}/></div></div>
   </aside>
   <section className="main-area">
