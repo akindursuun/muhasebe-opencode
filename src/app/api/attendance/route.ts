@@ -18,6 +18,7 @@ export async function POST(request:NextRequest){
  if(user.branchId&&!["SUPER_ADMIN","GENERAL_MANAGER","HR"].includes(user.role)&&input.data.branchId!==user.branchId)return NextResponse.json({error:"Bu şubeye puantaj giremezsiniz."},{status:403});
  const employee=await prisma.employee.findFirst({where:{id:input.data.employeeId,branchId:input.data.branchId}});
  if(!employee)return NextResponse.json({error:"Personel bu şubede bulunamadı."},{status:404});
- const row=await prisma.attendance.upsert({where:{employeeId_workDate:{employeeId:input.data.employeeId,workDate:new Date(input.data.workDate)}},update:{status:input.data.status,checkIn:input.data.checkIn?new Date(input.data.checkIn):null,checkOut:input.data.checkOut?new Date(input.data.checkOut):null,overtimeMin:input.data.overtimeMin,note:input.data.note},create:{...input.data,workDate:new Date(input.data.workDate),checkIn:input.data.checkIn?new Date(input.data.checkIn):undefined,checkOut:input.data.checkOut?new Date(input.data.checkOut):undefined}});
+ const workDate=new Date(input.data.workDate);workDate.setHours(0,0,0,0);
+ const row=await prisma.attendance.upsert({where:{employeeId_workDate:{employeeId:input.data.employeeId,workDate}},update:{status:input.data.status,checkIn:input.data.checkIn?new Date(input.data.checkIn):null,checkOut:input.data.checkOut?new Date(input.data.checkOut):null,overtimeMin:input.data.overtimeMin,note:input.data.note},create:{...input.data,workDate,checkIn:input.data.checkIn?new Date(input.data.checkIn):undefined,checkOut:input.data.checkOut?new Date(input.data.checkOut):undefined}});
  return NextResponse.json({attendance:row},{status:201});
 }
