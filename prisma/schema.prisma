@@ -5,12 +5,12 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-enum UserRole { SUPER_ADMIN GENERAL_MANAGER ACCOUNTING HR BRANCH_MANAGER VIEWER }
-enum TransactionType { INCOME EXPENSE TRANSFER }
-enum AccountType { BANK CASH POS OTHER }
-enum AttendanceStatus { WORKED OFF ANNUAL_LEAVE SICK_LEAVE UNPAID_LEAVE ABSENT HALF_DAY }
-enum EmployeeStatus { ACTIVE INACTIVE LEFT }
-enum AssetStatus { ACTIVE IN_REPAIR DISPOSED }
+enum UserRole {\n  SUPER_ADMIN\n  GENERAL_MANAGER\n  ACCOUNTING\n  HR\n  BRANCH_MANAGER\n  VIEWER\n}
+enum TransactionType {\n  INCOME\n  EXPENSE\n  TRANSFER\n}
+enum AccountType {\n  BANK\n  CASH\n  POS\n  OTHER\n}
+enum AttendanceStatus {\n  WORKED\n  OFF\n  ANNUAL_LEAVE\n  SICK_LEAVE\n  UNPAID_LEAVE\n  ABSENT\n  HALF_DAY\n}
+enum EmployeeStatus {\n  ACTIVE\n  INACTIVE\n  LEFT\n}
+enum AssetStatus {\n  ACTIVE\n  IN_REPAIR\n  DISPOSED\n}
 
 model Branch {
   id String @id @default(cuid())
